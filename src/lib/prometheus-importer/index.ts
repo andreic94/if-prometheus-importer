@@ -1,12 +1,12 @@
-import {YourGlobalConfig} from './types';
+import {PrometheusDriver} from 'prometheus-query'
+
+import {GlobalConfig} from './types';
 import {PluginInterface, PluginParams} from '../types/interface';
 
-export const MyCustomPlugin = (
-  globalConfig: YourGlobalConfig
+export const PrometheusImporter = (
+  globalConfig: GlobalConfig
 ): PluginInterface => {
-  const metadata = {
-    kind: 'execute',
-  };
+  const metadata = {kind: 'execute',};
 
   /**
    * Execute's strategy description here.
