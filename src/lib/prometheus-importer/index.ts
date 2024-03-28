@@ -132,7 +132,6 @@ export const PrometheusImporter = (): PluginInterface => {
     return rawResults.timestamps.map((timestamp, index) => ({
       timestamp,
       ...input,
-      'vendor': 'prometheus',
       'cpu/utilization': rawResults.cpuUtilizations[index],
       'memory/available/B': rawResults.memAvailable[index],
       'memory/used/B': rawResults.memUsed[index],
