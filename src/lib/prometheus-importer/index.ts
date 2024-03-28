@@ -34,65 +34,109 @@ export const PrometheusImporter = (): PluginInterface => {
 
       const prometheusInput = mapInputToPrometheusInputs(mergedWithConfig);
 
-      const rawResults = await getCPUUtilization(prometheusInput);
+      const rawResults = await getMetrics(prometheusInput);
 
       enrichedOutputsArray = enrichOutputs(
         rawResults,
         mergedWithConfig
       );
 
+
     }
+
 
     return enrichedOutputsArray.flat();
   };
 
-  const getCPUUtilization = async (metricParams: PrometheusInputs): Promise<PrometheusOutputs> => {
+  const getMetrics = async (metricParams: PrometheusInputs): Promise<PrometheusOutputs> => {
     const timestamps: string[] = [];
     const cpuUtils: string[] = [];
     const memAvailable: string[] = [];
-
+    const memUsed: string[] = [];
+    const memoryUtilization: string[] = [];
 
     // Helper function to parse metric data and populate metricArray and timestamps.
     const parseMetrics = async (
-      timeSeriesData: Promise<any[]>,
+      // timeSeriesData: Promise<any[]>,
+      timeSeriesData: any[],
       metricArray: string[],
       metricName: string
     ) => {
-      for (const data of (await timeSeriesData) ?? []) {
-        if (typeof data.average !== 'undefined') {
-          metricArray.push(data.average.toString());
+      const series = timeSeriesData;
+      series.forEach((serie) => {
+        serie.values.forEach((value: any) => {
+          metricArray.push(value.value);
+          
           if (metricName === 'cpuUtilizations') {
-            timestamps.push(data.timeStamp.toISOString());
+            timestamps.push(value.time);
+
           }
-        }
-      }
-    };
+        });
 
-    parseMetrics(getCPUMetrics(metricParams), cpuUtils, 'cpuUtilizations');
-    // parseMetrics(getRawMetrics(metricParams), memAvailable, '');
+      });
+    }
 
-    return { timestamps, cpuUtilizations: cpuUtils, memAvailable };
+    const cpuUtilizationQuery = '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[' + metricParams.window + '])) * 100)';
+    const memoryAvailableQuery = 'node_memory_MemTotal_bytes';
+    const memoryUsedQuery = 'node_memory_MemTotal_bytes - node_memory_MemFree_bytes'; 
+
+    parseMetrics((await getAllMetrics(metricParams, cpuUtilizationQuery)), cpuUtils, 'cpuUtilizations');
+    parseMetrics((await getAllMetrics(metricParams, memoryAvailableQuery)), memAvailable, '');
+    parseMetrics((await getAllMetrics(metricParams, memoryUsedQuery)), memUsed, '');
+
+    for (let i = 0; i < memUsed.length; i++) {
+      const used = parseFloat(memUsed[i]);
+      const available = parseFloat(memAvailable[i]);
+      const utilization = (used / available) * 100;
+      memoryUtilization.push(utilization.toString());
+    }
+
+
+    return { timestamps, cpuUtilizations: cpuUtils, memAvailable, memUsed, memoryUtilization };
   }
 
-  const getCPUMetrics = async (metricParams: GetMetricsParams) => {
+
+  const getAllMetrics = async (metricParams: GetMetricsParams, q: string) => {
 
     const start = new Date(metricParams.timestamp);
     const end = new Date(start.getTime() + Number(metricParams.duration) * 1000);
 
-    const q = '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[' + metricParams.window + '])) * 100)';
-
     return (await prom.rangeQuery(q, start, end, 300)).result;
   };
+
+
+  // const getCPUMetrics = async (metricParams: GetMetricsParams) => {
+
+  //   const start = new Date(metricParams.timestamp);
+  //   const end = new Date(start.getTime() + Number(metricParams.duration) * 1000);
+
+  //   const q = '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[' + metricParams.window + '])) * 100)';
+
+  //   return (await prom.rangeQuery(q, start, end, 300)).result;
+  // };
+
+  // const getMemoryMetrics = async (metricParams: GetMetricsParams) => {
+
+  //   const start = new Date(metricParams.timestamp);
+  //   const end = new Date(start.getTime() + Number(metricParams.duration) * 1000);
+
+  //   const q = 'node_memory_MemAvailable_bytes';
+
+  //   return (await prom.rangeQuery(q, start, end, 300)).result;
+  // };
 
   const enrichOutputs = (
     rawResults: PrometheusOutputs,
     input: PluginParams
   ) => {
     return rawResults.timestamps.map((timestamp, index) => ({
-      'cloud/vendor': 'prometheus',
-      'cpu/utilization': rawResults.cpuUtilizations[index],
-      ...input,
       timestamp,
+      ...input,
+      'vendor': 'prometheus',
+      'cpu/utilization': rawResults.cpuUtilizations[index],
+      'memory/available/B': rawResults.memAvailable[index],
+      'memory/used/B': rawResults.memUsed[index],
+      'memory/utilization': rawResults.memoryUtilization[index],
     }));
   };
 

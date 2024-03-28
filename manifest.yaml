@@ -14,7 +14,7 @@ tree:
         - prometheus-importer
       config:
         prometheus-importer:
-          prometheus-observation-window: 1m
+          prometheus-observation-window: 5m
           prometheus-url: http://172.20.255.250:9090
       inputs:
         - timestamp: '2024-03-27T13:35:31.820Z'
