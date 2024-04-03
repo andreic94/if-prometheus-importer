@@ -55,9 +55,7 @@ export const PrometheusImporter = (): PluginInterface => {
     const memUsed: string[] = [];
     const memoryUtilization: string[] = [];
 
-    // Helper function to parse metric data and populate metricArray and timestamps.
     const parseMetrics = async (
-      // timeSeriesData: Promise<any[]>,
       timeSeriesData: any[],
       metricArray: string[],
       metricName: string
@@ -85,10 +83,14 @@ export const PrometheusImporter = (): PluginInterface => {
     parseMetrics((await getAllMetrics(metricParams, memoryUsedQuery)), memUsed, '');
 
     for (let i = 0; i < memUsed.length; i++) {
-      const used = parseFloat(memUsed[i]);
-      const available = parseFloat(memAvailable[i]);
-      const utilization = (used / available) * 100;
+
+      const usedGB = parseFloat(memUsed[i]) / (1024 * 1024 * 1024);
+      const availableGB = parseFloat(memAvailable[i]) / (1024 * 1024 * 1024);
+      const utilization = (usedGB / availableGB) * 100;
       memoryUtilization.push(utilization.toString());
+      memAvailable[i] = availableGB.toString();
+      memUsed[i] = usedGB.toString();
+
     }
 
 
@@ -105,26 +107,6 @@ export const PrometheusImporter = (): PluginInterface => {
   };
 
 
-  // const getCPUMetrics = async (metricParams: GetMetricsParams) => {
-
-  //   const start = new Date(metricParams.timestamp);
-  //   const end = new Date(start.getTime() + Number(metricParams.duration) * 1000);
-
-  //   const q = '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[' + metricParams.window + '])) * 100)';
-
-  //   return (await prom.rangeQuery(q, start, end, 300)).result;
-  // };
-
-  // const getMemoryMetrics = async (metricParams: GetMetricsParams) => {
-
-  //   const start = new Date(metricParams.timestamp);
-  //   const end = new Date(start.getTime() + Number(metricParams.duration) * 1000);
-
-  //   const q = 'node_memory_MemAvailable_bytes';
-
-  //   return (await prom.rangeQuery(q, start, end, 300)).result;
-  // };
-
   const enrichOutputs = (
     rawResults: PrometheusOutputs,
     input: PluginParams
@@ -133,8 +115,8 @@ export const PrometheusImporter = (): PluginInterface => {
       timestamp,
       ...input,
       'cpu/utilization': rawResults.cpuUtilizations[index],
-      'memory/available/B': rawResults.memAvailable[index],
-      'memory/used/B': rawResults.memUsed[index],
+      'memory/available/GB': rawResults.memAvailable[index],
+      'memory/used/GB': rawResults.memUsed[index],
       'memory/utilization': rawResults.memoryUtilization[index],
     }));
   };
