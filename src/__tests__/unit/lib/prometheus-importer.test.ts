@@ -1,1 +1,5 @@
-describe('Empty Test', () => {});
+describe('Empty Test', () => {
+  it('should empty string equal empty string', () => {
+    expect('').toEqual('');
+  });
+});
