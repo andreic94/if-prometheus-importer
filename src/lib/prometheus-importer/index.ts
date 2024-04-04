@@ -1,29 +1,27 @@
-import { PrometheusDriver } from 'prometheus-query';
-import { GetMetricsParams, PrometheusInputs, PrometheusOutputs } from './types';
-import { z } from 'zod';
-import { allDefined, validate } from '../../util/validations';
-import { buildErrorMessage } from '../../util/helpers';
-import { ERRORS } from '../../util/errors';
-import { ConfigParams, PluginParams } from '../../types/common';
-import { PluginInterface } from '../../interfaces';
-const { ConfigValidationError } =
-  ERRORS;
-
+import {PrometheusDriver} from 'prometheus-query';
+import {z} from 'zod';
+import {PluginInterface} from '../../interfaces';
+import {ConfigParams, PluginParams} from '../../types/common';
+import {ERRORS} from '../../util/errors';
+import {buildErrorMessage} from '../../util/helpers';
+import {allDefined, validate} from '../../util/validations';
+import {GetMetricsParams, PrometheusInputs, PrometheusOutputs} from './types';
+const {ConfigValidationError} = ERRORS;
 
 export const PrometheusImporter = (): PluginInterface => {
-
   const prom = new PrometheusDriver({
-    endpoint: "https://prometheus.demo.do.prometheus.io",
-    baseURL: "/api/v1"
+    endpoint: 'https://prometheus.demo.do.prometheus.io',
+    baseURL: '/api/v1',
   });
-  const metadata = { kind: 'execute' };
+  const metadata = {kind: 'execute'};
   const errorBuilder = buildErrorMessage(PrometheusImporter.name);
 
-
-  const execute = async (inputs: PluginParams[], config?: ConfigParams): Promise<PluginParams[]> => {
+  const execute = async (
+    inputs: PluginParams[],
+    config?: ConfigParams
+  ): Promise<PluginParams[]> => {
     const validatedConfig = validateConfig(config);
     let enrichedOutputsArray: PluginParams[] = [];
-
 
     for await (const input of inputs) {
       const mergedWithConfig = Object.assign(
@@ -36,19 +34,15 @@ export const PrometheusImporter = (): PluginInterface => {
 
       const rawResults = await getMetrics(prometheusInput);
 
-      enrichedOutputsArray = enrichOutputs(
-        rawResults,
-        mergedWithConfig
-      );
-
-
+      enrichedOutputsArray = enrichOutputs(rawResults, mergedWithConfig);
     }
-
 
     return enrichedOutputsArray.flat();
   };
 
-  const getMetrics = async (metricParams: PrometheusInputs): Promise<PrometheusOutputs> => {
+  const getMetrics = async (
+    metricParams: PrometheusInputs
+  ): Promise<PrometheusOutputs> => {
     const timestamps: string[] = [];
     const cpuUtils: string[] = [];
     const memAvailable: string[] = [];
@@ -61,51 +55,67 @@ export const PrometheusImporter = (): PluginInterface => {
       metricName: string
     ) => {
       const series = timeSeriesData;
-      series.forEach((serie) => {
+      series.forEach(serie => {
         serie.values.forEach((value: any) => {
           metricArray.push(value.value);
-          
+
           if (metricName === 'cpuUtilizations') {
             timestamps.push(value.time);
-
           }
         });
-
       });
-    }
+    };
 
-    const cpuUtilizationQuery = '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[' + metricParams.window + '])) * 100)';
+    const cpuUtilizationQuery =
+      '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[' +
+      metricParams.window +
+      '])) * 100)';
     const memoryAvailableQuery = 'node_memory_MemTotal_bytes';
-    const memoryUsedQuery = 'node_memory_MemTotal_bytes - node_memory_MemFree_bytes'; 
+    const memoryUsedQuery =
+      'node_memory_MemTotal_bytes - node_memory_MemFree_bytes';
 
-    parseMetrics((await getAllMetrics(metricParams, cpuUtilizationQuery)), cpuUtils, 'cpuUtilizations');
-    parseMetrics((await getAllMetrics(metricParams, memoryAvailableQuery)), memAvailable, '');
-    parseMetrics((await getAllMetrics(metricParams, memoryUsedQuery)), memUsed, '');
+    parseMetrics(
+      await getAllMetrics(metricParams, cpuUtilizationQuery),
+      cpuUtils,
+      'cpuUtilizations'
+    );
+    parseMetrics(
+      await getAllMetrics(metricParams, memoryAvailableQuery),
+      memAvailable,
+      ''
+    );
+    parseMetrics(
+      await getAllMetrics(metricParams, memoryUsedQuery),
+      memUsed,
+      ''
+    );
 
     for (let i = 0; i < memUsed.length; i++) {
-
       const usedGB = parseFloat(memUsed[i]) / (1024 * 1024 * 1024);
       const availableGB = parseFloat(memAvailable[i]) / (1024 * 1024 * 1024);
       const utilization = (usedGB / availableGB) * 100;
       memoryUtilization.push(utilization.toString());
       memAvailable[i] = availableGB.toString();
       memUsed[i] = usedGB.toString();
-
     }
 
-
-    return { timestamps, cpuUtilizations: cpuUtils, memAvailable, memUsed, memoryUtilization };
-  }
-
+    return {
+      timestamps,
+      cpuUtilizations: cpuUtils,
+      memAvailable,
+      memUsed,
+      memoryUtilization,
+    };
+  };
 
   const getAllMetrics = async (metricParams: GetMetricsParams, q: string) => {
-
     const start = new Date(metricParams.timestamp);
-    const end = new Date(start.getTime() + Number(metricParams.duration) * 1000);
+    const end = new Date(
+      start.getTime() + Number(metricParams.duration) * 1000
+    );
 
     return (await prom.rangeQuery(q, start, end, 300)).result;
   };
-
 
   const enrichOutputs = (
     rawResults: PrometheusOutputs,
@@ -121,13 +131,15 @@ export const PrometheusImporter = (): PluginInterface => {
     }));
   };
 
-  const mapInputToPrometheusInputs = (input: PluginParams): PrometheusInputs => {
+  const mapInputToPrometheusInputs = (
+    input: PluginParams
+  ): PrometheusInputs => {
     return {
       timestamp: input['timestamp']!,
       duration: input['duration'].toString(),
       promURL: input['prometheus-url'],
       window: input['prometheus-observation-window'],
-      customQuery: input['customQuery']
+      customQuery: input['customQuery'],
     };
   };
 
@@ -144,7 +156,7 @@ export const PrometheusImporter = (): PluginInterface => {
   const validateConfig = (config?: ConfigParams) => {
     if (!config) {
       throw new ConfigValidationError(
-        errorBuilder({ message: 'Config must be provided.' })
+        errorBuilder({message: 'Config must be provided.'})
       );
     }
 
@@ -160,10 +172,8 @@ export const PrometheusImporter = (): PluginInterface => {
     return validate<z.infer<typeof schema>>(schema, config);
   };
 
-
   return {
     metadata,
     execute,
   };
-
 };
