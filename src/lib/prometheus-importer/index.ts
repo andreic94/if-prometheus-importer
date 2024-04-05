@@ -22,6 +22,7 @@ export const PrometheusImporter = (): PluginInterface => {
     for await (const input of inputs) {
       const mergedWithConfig = Object.assign(
         {},
+        input,
         validateInput(input),
         validatedConfig
       );
@@ -118,6 +119,7 @@ export const PrometheusImporter = (): PluginInterface => {
       memUsed,
       memoryUtilization,
       customQueryResult,
+      ...metricParams,
     };
   };
 
@@ -158,6 +160,7 @@ export const PrometheusImporter = (): PluginInterface => {
       promURL: input['prometheus-url'],
       window: input['prometheus-observation-window'],
       customQuery: input['customQuery'],
+      ...input,
     };
   };
 
