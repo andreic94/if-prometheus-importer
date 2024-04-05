@@ -9,9 +9,7 @@
     "declaration": true,
     "experimentalDecorators": true,
     "incremental": false,
-    "lib": [
-      "es2020"
-    ],
+    "lib": ["es2018", "dom"],
     "module": "CommonJS",
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
