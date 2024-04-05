@@ -9,10 +9,6 @@ import {GetMetricsParams, PrometheusInputs, PrometheusOutputs} from './types';
 const {ConfigValidationError} = ERRORS;
 
 export const PrometheusImporter = (): PluginInterface => {
-  const prom = new PrometheusDriver({
-    endpoint: 'https://prometheus.demo.do.prometheus.io',
-    baseURL: '/api/v1',
-  });
   const metadata = {kind: 'execute'};
   const errorBuilder = buildErrorMessage(PrometheusImporter.name);
 
@@ -32,7 +28,12 @@ export const PrometheusImporter = (): PluginInterface => {
 
       const prometheusInput = mapInputToPrometheusInputs(mergedWithConfig);
 
-      const rawResults = await getMetrics(prometheusInput);
+      const prom = new PrometheusDriver({
+        endpoint: prometheusInput['promURL'],
+        baseURL: '/api/v1',
+      });
+
+      const rawResults = await getMetrics(prometheusInput, prom);
 
       enrichedOutputsArray = enrichOutputs(rawResults, mergedWithConfig);
     }
@@ -41,7 +42,7 @@ export const PrometheusImporter = (): PluginInterface => {
   };
 
   const getMetrics = async (
-    metricParams: PrometheusInputs
+    metricParams: PrometheusInputs, prom:PrometheusDriver
   ): Promise<PrometheusOutputs> => {
     const timestamps: string[] = [];
     const cpuUtils: string[] = [];
@@ -75,17 +76,17 @@ export const PrometheusImporter = (): PluginInterface => {
       'node_memory_MemTotal_bytes - node_memory_MemFree_bytes';
 
     parseMetrics(
-      await getAllMetrics(metricParams, cpuUtilizationQuery),
+      await getAllMetrics(prom, metricParams, cpuUtilizationQuery),
       cpuUtils,
       'cpuUtilizations'
     );
     parseMetrics(
-      await getAllMetrics(metricParams, memoryAvailableQuery),
+      await getAllMetrics(prom, metricParams, memoryAvailableQuery),
       memAvailable,
       ''
     );
     parseMetrics(
-      await getAllMetrics(metricParams, memoryUsedQuery),
+      await getAllMetrics(prom, metricParams, memoryUsedQuery),
       memUsed,
       ''
     );
@@ -108,7 +109,7 @@ export const PrometheusImporter = (): PluginInterface => {
     };
   };
 
-  const getAllMetrics = async (metricParams: GetMetricsParams, q: string) => {
+  const getAllMetrics = async (prom: PrometheusDriver, metricParams: GetMetricsParams, q: string) => {
     const start = new Date(metricParams.timestamp);
     const end = new Date(
       start.getTime() + Number(metricParams.duration) * 1000
