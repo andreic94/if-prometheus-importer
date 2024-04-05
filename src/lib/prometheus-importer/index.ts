@@ -76,8 +76,8 @@ export const PrometheusImporter = (): PluginInterface => {
     const memoryAvailableQuery = 'node_memory_MemTotal_bytes';
     const memoryUsedQuery =
       'node_memory_MemTotal_bytes - node_memory_MemFree_bytes';
-    var customQuery = '';
-    if (metricParams['customQuery'] != null) {
+    let customQuery = '';
+    if (metricParams['customQuery'] !== null) {
       customQuery = metricParams['customQuery'];
       parseMetrics(
         await getAllMetrics(prom, metricParams, customQuery),
@@ -85,7 +85,6 @@ export const PrometheusImporter = (): PluginInterface => {
         ''
       );
     }
-    
 
     parseMetrics(
       await getAllMetrics(prom, metricParams, cpuUtilizationQuery),
@@ -102,7 +101,6 @@ export const PrometheusImporter = (): PluginInterface => {
       memUsed,
       ''
     );
-    
 
     for (let i = 0; i < memUsed.length; i++) {
       const usedGB = parseFloat(memUsed[i]) / (1024 * 1024 * 1024);
@@ -119,7 +117,7 @@ export const PrometheusImporter = (): PluginInterface => {
       memAvailable,
       memUsed,
       memoryUtilization,
-      customQueryResult
+      customQueryResult,
     };
   };
 
@@ -147,7 +145,7 @@ export const PrometheusImporter = (): PluginInterface => {
       'memory/available/GB': rawResults.memAvailable[index],
       'memory/used/GB': rawResults.memUsed[index],
       'memory/utilization': rawResults.memoryUtilization[index],
-      'custom/customQueryResult': rawResults.customQueryResult[index]
+      'custom/customQueryResult': rawResults.customQueryResult[index],
     }));
   };
 
