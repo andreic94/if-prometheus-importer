@@ -114,7 +114,7 @@ export const PrometheusImporter = (): PluginInterface => {
     prom: PrometheusDriver,
     metricParams: GetMetricsParams,
     q: string
-    ) => {
+  ) => {
     const start = new Date(metricParams.timestamp);
     const end = new Date(
       start.getTime() + Number(metricParams.duration) * 1000
