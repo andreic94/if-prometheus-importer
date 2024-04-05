@@ -43,7 +43,7 @@ export const PrometheusImporter = (): PluginInterface => {
 
   const getMetrics = async (
     metricParams: PrometheusInputs,
-    prom:PrometheusDriver
+    prom: PrometheusDriver
   ): Promise<PrometheusOutputs> => {
     const timestamps: string[] = [];
     const cpuUtils: string[] = [];
@@ -111,8 +111,8 @@ export const PrometheusImporter = (): PluginInterface => {
   };
 
   const getAllMetrics = async (
-    prom: PrometheusDriver, 
-    metricParams: GetMetricsParams, 
+    prom: PrometheusDriver,
+    metricParams: GetMetricsParams,
     q: string
     ) => {
     const start = new Date(metricParams.timestamp);
