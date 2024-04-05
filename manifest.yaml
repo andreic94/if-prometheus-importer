@@ -15,7 +15,8 @@ tree:
       config:
         prometheus-importer:
           prometheus-observation-window: 5m
-          prometheus-url: http://localhost:9090
+          prometheus-url: https://prometheus.demo.do.prometheus.io
       inputs:
         - timestamp: '2024-04-05T09:00:31.820Z'
-          duration: 3600
+          duration: 0
+          customQuery: 'machine_cpu_cores'

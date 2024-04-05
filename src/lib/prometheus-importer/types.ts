@@ -6,6 +6,7 @@ export type PrometheusOutputs = {
   memAvailable: string[];
   memUsed: string[];
   memoryUtilization: string[];
+  customQueryResult: string[];
 };
 
 export type PrometheusInputs = {
@@ -20,4 +21,5 @@ export type GetMetricsParams = {
   timestamp: string;
   duration: string;
   window: string;
+  customQuery: string;
 };
