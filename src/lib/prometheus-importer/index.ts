@@ -77,7 +77,7 @@ export const PrometheusImporter = (): PluginInterface => {
     const memoryUsedQuery =
       'node_memory_MemTotal_bytes - node_memory_MemFree_bytes';
     let customQuery = '';
-    if (metricParams['customQuery'] !== null) {
+    if (metricParams['customQuery'] !== '') {
       customQuery = metricParams['customQuery'];
       parseMetrics(
         await getAllMetrics(prom, metricParams, customQuery),
