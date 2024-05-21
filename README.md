@@ -41,7 +41,7 @@ git clone git@github.com:andreic94/if-prometheus-importer.git
 
 2. Navigate to the `if-prometheus-importer` directory
 ```bash
-cd if-prometheus-directory
+cd if-prometheus-importer
 ```
 
 3. Run `npm install` to install the required packages for the plugin
