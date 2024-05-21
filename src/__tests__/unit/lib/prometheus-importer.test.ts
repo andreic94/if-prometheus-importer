@@ -5,7 +5,7 @@ describe('PrometheusImporter', () => {
     it('should fetch metrics and enrich outputs if customQuery is defined correctly', async () => {
       const inputs = [
         {
-          timestamp: '2024-04-05T09:00:31.820Z',
+          timestamp: '2024-05-21T08:00:31.820Z',
           duration: 0,
           customQuery: 'machine_cpu_cores',
         },
@@ -20,15 +20,15 @@ describe('PrometheusImporter', () => {
 
       expect(result).toStrictEqual([
         {
-          timestamp: '2024-04-05T09:00:31.820Z',
+          timestamp: '2024-05-21T08:00:31.820Z',
           duration: 0,
           customQuery: 'machine_cpu_cores',
           'prometheus-url': 'https://prometheus.demo.do.prometheus.io',
           'prometheus-observation-window': '5m',
-          'cpu/utilization': 42.60000000397365,
-          'memory/available/GB': '0.9351959228515625',
-          'memory/used/GB': '0.7821769714355469',
-          'memory/utilization': '83.6377653412521',
+          'cpu/utilization': 26.99999999992238,
+          'memory/available/GB': '0.9351272583007812',
+          'memory/used/GB': '0.8576240539550781',
+          'memory/utilization': '91.71201527302989',
           'custom/customQueryResult': 1,
         },
       ]);
@@ -37,7 +37,7 @@ describe('PrometheusImporter', () => {
     it('should fetch metrics and enrich outputs if customQuery is defined as an empty string', async () => {
       const inputs = [
         {
-          timestamp: '2024-04-05T09:00:31.820Z',
+          timestamp: '2024-05-21T08:00:31.820Z',
           duration: 0,
           customQuery: '',
         },
@@ -52,16 +52,16 @@ describe('PrometheusImporter', () => {
 
       expect(result).toStrictEqual([
         {
-          timestamp: '2024-04-05T09:00:31.820Z',
+          timestamp: '2024-05-21T08:00:31.820Z',
           duration: 0,
           customQuery: '',
           'prometheus-url': 'https://prometheus.demo.do.prometheus.io',
           'custom/customQueryResult': undefined,
           'prometheus-observation-window': '5m',
-          'cpu/utilization': 42.60000000397365,
-          'memory/available/GB': '0.9351959228515625',
-          'memory/used/GB': '0.7821769714355469',
-          'memory/utilization': '83.6377653412521',
+          'cpu/utilization': 26.99999999992238,
+          'memory/available/GB': '0.9351272583007812',
+          'memory/used/GB': '0.8576240539550781',
+          'memory/utilization': '91.71201527302989',
         },
       ]);
     });
@@ -69,7 +69,7 @@ describe('PrometheusImporter', () => {
     it('should fetch metrics and enrich outputs if customQuery is defined but is an invalid query', async () => {
       const inputs = [
         {
-          timestamp: '2024-04-05T09:00:31.820Z',
+          timestamp: '2024-05-21T08:00:31.820Z',
           duration: 0,
           customQuery: 'invalidQuery',
         },
@@ -84,22 +84,22 @@ describe('PrometheusImporter', () => {
 
       expect(result).toStrictEqual([
         {
-          timestamp: '2024-04-05T09:00:31.820Z',
+          timestamp: '2024-05-21T08:00:31.820Z',
           duration: 0,
           customQuery: 'invalidQuery',
           'prometheus-url': 'https://prometheus.demo.do.prometheus.io',
           'custom/customQueryResult': undefined,
           'prometheus-observation-window': '5m',
-          'cpu/utilization': 42.60000000397365,
-          'memory/available/GB': '0.9351959228515625',
-          'memory/used/GB': '0.7821769714355469',
-          'memory/utilization': '83.6377653412521',
+          'cpu/utilization': 26.99999999992238,
+          'memory/available/GB': '0.9351272583007812',
+          'memory/used/GB': '0.8576240539550781',
+          'memory/utilization': '91.71201527302989',
         },
       ]);
     });
 
     it('should throw error if config is not provided', async () => {
-      const inputs = [{timestamp: '2024-04-05T12:00:00', duration: 300}];
+      const inputs = [{timestamp: '2024-05-21T08:00:31.820Z', duration: 300}];
 
       const plugin = PrometheusImporter();
 
