@@ -34,38 +34,58 @@ If a `custom-query` input parameter had been set, then the plugin outputs the fo
 
 ## Usage
 ### Prerequisites
-To successfully run this plugin, it is essential to have a local instance of Prometheus installed and configured.
+- [`npm`](https://www.npmjs.com/) must be installed on the instance where you want to run the Impact Framework plugins.
+
+- [Impact Framework](https://github.com/Green-Software-Foundation/if) must be installed on the instance.
+
+Start by installing framework itself:
+```sh
+npm install -g "@grnsft/if"
+```
+Then installing some plugins:
+```sh
+npm install -g "@grnsft/if-plugins"
+```
+
+- To successfully run this plugin, it is essential to have a local instance of Prometheus installed and configured.
+
 Use the link to the existing instance as input for the `prometheus-url` parameter.
 
 Example
-```typescript
+```yaml
 prometheus-url: http://localhost:9090
 ```
 
-Also, `npm` should be installed on your instance.
-
 ### Installation
 1. Clone the repository locally
-```bash
+```sh
 git clone git@github.com:andreic94/if-prometheus-importer.git
 ```
 
 2. Navigate to the `if-prometheus-importer` directory
-```bash
+```sh
 cd if-prometheus-importer
 ```
 
-3. Run `npm install` to install the required packages for the plugin
-```
+3. Run `npm install` to install the required packages for the plugin.
+```sh
 npm install
 ```
 
-4. Run `npm link` to link to the correct version of the plugin.
+4. Run `npm run build` to build the package.
+```sh
+npm run build
 ```
+
+5. Run `npm link` to link to the correct version of the plugin.
+```sh
 npm link
 ```
 
-5. The plugin should be ready now for testing. After creating a `manifest.yaml` file, you can run `sudo ie --manifest manifest.yaml` to see the outputs of the `prometheus-importer` plugin.
+6. The plugin should be ready now for testing. After creating a `manifest.yaml` file, you can run `sudo ie --manifest manifest.yaml` to see the outputs of the `prometheus-importer` plugin.
+```sh
+sudo ie --manifest manifest.yaml
+```
 
 ### Unit tests
 The unit test file can be accessed at the following [link](src/__tests__/unit/lib/prometheus-importer.test.ts).
