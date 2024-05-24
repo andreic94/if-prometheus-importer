@@ -7,17 +7,28 @@ initialize:
       method: PrometheusImporter
       path: "prometheus-importer"
       global-config: { }
+    finder:
+      method: TdpFinder
+      path: '@grnsft/if-plugins'
+    teads-curve:
+      method: TeadsCurve
+      path: '@grnsft/if-unofficial-plugins'
+      global-config:
+        interpolation: spline
 tree:
   children:
     child:
       pipeline:
         - prometheus-importer
+        - finder
+        - teads-curve
       config:
         prometheus-importer:
           prometheus-observation-window: 5m
           prometheus-url: https://prometheus.demo.do.prometheus.io
       inputs:
         - timestamp: '2024-05-21T08:00:31.820Z'
-          duration: 0
+          duration: 300
           customQuery: 'machine_cpu_cores'
-
+          physical-processor: Intel Xeon Platinum 8175M
+      
